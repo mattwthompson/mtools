@@ -1,0 +1,22 @@
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+
+# Installer logs
+pip-log.txt
+
+# PyCharm
+.idea
+.idea/*
