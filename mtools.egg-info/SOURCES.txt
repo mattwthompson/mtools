@@ -1,7 +1,0 @@
-setup.py
-mtools/__init__.py
-mtools.egg-info/PKG-INFO
-mtools.egg-info/SOURCES.txt
-mtools.egg-info/dependency_links.txt
-mtools.egg-info/not-zip-safe
-mtools.egg-info/top_level.txt

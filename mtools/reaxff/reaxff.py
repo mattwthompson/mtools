@@ -1,10 +1,15 @@
 import numpy as np
 
 def read_reaxc_bonds(bonds_file = 'bonds.reaxc', cutoff=0.3):
-    #takes bonds file, minimin 'bond order' to consider
-    #returns Nx3, columns atom_1, atom_2, bond_order
+    """Takes bonds file, minimin 'bond order' to consider
+
+    Returns
+    -------
+    bonds : np.ndarray, shape=(n, 3), dtype=(int, int, float)
+        Columns: atom_1, atom_2, bond_order
+    """
     bonds = np.ndarray(shape=(0,3))
-    
+
     with open(bonds_file,'r') as f:
         for line in f:
             if line.startswith('#'):
