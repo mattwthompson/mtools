@@ -6,6 +6,6 @@ setup(name='mtools',
     url='http://github.com/mattwthompson/mtools',
     author='Matt Thompson',
     author_email='mattwthomp@gmail.com',
-    license='None',
+    license='MIT',
     packages=['mtools'],
     zip_safe=False)
