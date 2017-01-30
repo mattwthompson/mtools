@@ -1,8 +1,15 @@
 import numpy as np
 import mdtraj as md
 
-def calc_number_density(coord_file, trj_file, ions,
+def calc_number_density(coord_file, trj_file, resnames,
     bin_width, area, dim, box_range, data_path):
+
+    first_frame = md.load_frame(trj_file, top=coord_file, index=0)
+    
+    ions = dict()
+    
+    for ion in resnames:
+        ions[ion] = first_frame.topology.select('resname {}'.format(ion))
     
     for ion in np.sort(list(ions.keys())):
         #first_frame = md.load_frame(trj_file, top=coord_file,
