@@ -27,4 +27,4 @@ def calc_number_density(coord_file, trj_file, resnames,
             num=1+round((box_range[1] - box_range[0])/bin_width)))
         np.savetxt('{0}/{1}-number-density.txt'.format(data_path, ion),
             np.vstack([x[1][:-1]+np.mean(x[1][:2])-box_range[0],
-            x[0]/(area*bin_width*(len(traj)-1))]))
+            x[0]/(area*bin_width*(len(traj)-1))]).transpose())
