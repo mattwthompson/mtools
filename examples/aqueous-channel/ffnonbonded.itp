@@ -1,0 +1,12 @@
+[ defaults ]
+; nbfunc     comb-rule      gen-pairs     fudgeLJ      fudgeQQ
+   1             2             no         1           1
+
+[   atomtypes   ]
+;   name    mass        charge  ptype   sigma(nm)   epsilon(kJ/mol)
+    grC     12.011      0       A       0.34        0.359824
+    Na      22.98977    1.000   A       0.189744    6.72427
+    Cl      35.45300   -1.000   A       0.441724    0.492833
+    OW      15.99940   -0.834   A       0.315061    0.636386
+    HW1	    1.00800     0.417   A       0.00000     0.000000
+    HW2	    1.00800     0.417   A       0.00000     0.000000
