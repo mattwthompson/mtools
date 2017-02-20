@@ -4,10 +4,10 @@ from mtools.post_process import calc_charge_density
 from mtools.post_process import calc_number_density
 
 resnames = ['Na', 'Cl', 'HOH']
-coord_file='aqueous-channel/prod.gro'
-trj_file='aqueous-channel/prod.xtc'
-top_file='aqueous-channel/prod.tpr'
-bin_width=0.01
+coord_file='prod.gro'
+trj_file='prod.xtc'
+top_file='topol.top'
+bin_width=0.05
 area=5.166*5.122
 dim=2
 box_range=[0.682, 5.682]
