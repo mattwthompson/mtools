@@ -1,0 +1,15 @@
+; Include forcefield parameters
+#include "ffnonbonded.itp"
+#include "carbon.itp"
+#include "na.itp"
+#include "cl.itp"
+#include "tip3p.itp"
+
+[ system ]
+water channel
+
+[ molecules ]
+GPH 1
+Na 75
+Cl 75
+SOL 4000

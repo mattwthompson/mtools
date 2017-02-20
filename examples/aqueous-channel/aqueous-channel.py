@@ -4,9 +4,9 @@ from mtools.post_process import calc_charge_density
 from mtools.post_process import calc_number_density
 
 resnames = ['Na', 'Cl', 'HOH']
-coord_file='prod.gro'
-trj_file='prod.xtc'
-top_file='topol.top'
+coord_file='run/prod.gro'
+trj_file='run/prod.xtc'
+top_file='run/prod.top'
 bin_width=0.05
 area=5.166*5.122
 dim=2
