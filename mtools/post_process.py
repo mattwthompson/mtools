@@ -11,7 +11,7 @@ def calc_charge_density(coord_file, trj_file, top_file, bin_width, area,
 
     """
 
-    system = pmd.load_file("/Users/mwt/science/water-channel/topol.top")
+    system = pmd.load_file(top_file)
 
     first_frame = md.load_frame(trj_file, top=coord_file, index=0)
 
