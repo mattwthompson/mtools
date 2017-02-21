@@ -57,6 +57,8 @@ def calc_number_density(coord_file, trj_file, bin_width, area,
     
     resnames = np.unique([x.name for x in first_frame.topology.residues])
 
+    open('{0}/resnames.txt'.format(data_path), 'w').close()
+
     for resname in resnames:
         traj = md.load(trj_file, top=coord_file,
             atom_indices=first_frame.topology.select('resname {}'
@@ -80,4 +82,4 @@ def calc_number_density(coord_file, trj_file, bin_width, area,
             x[0]/(area*bin_width*(len(traj)-1))]).transpose())
         
         with open('{0}/resnames.txt'.format(data_path), "a") as myfile:
-            myfile.write(resname)
+            myfile.write(resname + '\n')
