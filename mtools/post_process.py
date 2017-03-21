@@ -46,8 +46,7 @@ def calc_charge_density(coord_file, trj_file, top_file, bin_width, area,
         np.transpose(np.vstack([x[1][:-1]+np.mean(x[1][:2]),
         np.sum(np.array(charge_density), axis=0)])))
 
-def calc_number_density(coord_file, trj_file, bin_width, area,
-    dim, box_range, data_path):
+def calc_number_density(coord_file, trj_file, bin_width, area, dim, box_range, data_path):
     """
     Return a 1-D number density profiles for each residue across a channel.
 
@@ -83,3 +82,32 @@ def calc_number_density(coord_file, trj_file, bin_width, area,
         
         with open('{0}/resnames.txt'.format(data_path), "a") as myfile:
             myfile.write(resname + '\n')
+
+
+def calc_msd(coord_file, trj_file):
+    """Calculate the MSD and diffuvisity of a bulk simulation
+
+    Parameters
+    ----------
+    coord_file : String
+        Path to topology-containing coordinate file
+    trj_file : String
+        Path to unwrapped trajectory file
+
+    Returns
+    -------
+    D : Float
+        Bulk 3-D self-diffusvity
+    msd : np.ndarray
+    """
+
+    traj = md.load(trj_file, top=coord_file)
+
+    msd = [np.sum((row - traj.xyz[0])**2)/int(traj.n_atoms)
+        for row in traj.xyz]
+    y_fit = msd[int(np.round(len(msd)/10, 0)):]
+    x_fit = traj.time[int(np.round(len(msd)/10, 0)):]
+    fit = np.polyfit(x_fit, y_fit, 1)
+    D = fit[1]/6 * 1e-9
+
+    return D, msd
