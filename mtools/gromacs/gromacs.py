@@ -46,7 +46,7 @@ def write_custom_96(file_name):
     rcut = 2.0
     nbins = int((rcut + 1)/dr + 1)
     with open(file_name, 'w') as fo:
-        for j in range(1, nbins):
+        for j in range(nbins):
             r = dr*j
             fo.write('{0} {1} {2} {3} {4} {5} {6}\n'.format(
                 r, 1/r, 1/(r*r), -1/(r**6), -6/(r**7), 1/(r**9), 9/(r**10)))
@@ -65,11 +65,16 @@ def write_custom_lj_mn(file_name='table.xvg', m=12, n=6, dr=0.001, rcut=1.5):
     dr : float, spacing of values, nm
     rcut : float, cutoff distance, nm
     """
-    dr = 0.001
-    rcut = 2.0
-    nbins = int((rcut + 1)/dr + 1)
+    
+    nbins = int(1 + (rcut)/dr)
+    
     with open(file_name, 'w') as fo:
-        for j in range(1, nbins):
-            r = dr*j
-            fo.write('{0} {1} {2} {3} {4} {5} {6}\n'.format(
-                r, 1/r, 1/(r*r), -1/(r**n), -n/(r**(n+1)), 1/(r**m), m/(r**(m+1))))
+        for j in range(nbins):
+            r = dr*float(j)
+            if r > 0.05:
+                fo.write('{0} {1} {2} {3} {4} {5} {6}\n'.format(
+                    r, 1/r, 1/(r*r), -1/(r**n), -n/(r**(n+1)),
+                    1/(r**m), m/(r**(m+1))))
+            else:
+                fo.write('{0} {1} {2} {3} {4} {5} {6}\n'.format(
+                    r, 0, 0, 0, 0, 0, 0))
