@@ -1,8 +1,8 @@
 import numpy as np
 import mdtraj as md
 import parmed as pmd
-import pdb
-
+import warnings
+import mdtraj.core.element as Element
 
 def calc_charge_density(coord_file, trj_file, top_file, bin_width, area,
     dim, box_range, data_path):
@@ -65,6 +65,13 @@ def calc_number_density(coord_file, trj_file, bin_width, area, dim, box_range, d
 
         indices = [[at.index for at in compound.atoms]
             for compound in list(traj.topology.residues)]
+
+        if 0 in [x.mass for x in
+            [atom.element for atom in traj.topology.atoms]]:
+            warnings.warn("mdtraj found zero mass, setting element to hydrogen", UserWarning)
+            for atom in traj.topology.atoms:
+                if atom.element in [Element.virtual, Element.virtual_site]:
+                    atom.element = Element.hydrogen
 
         com = list()
         for i, ids in enumerate(indices):
