@@ -52,7 +52,8 @@ def write_custom_96(file_name):
                 r, 1/r, 1/(r*r), -1/(r**6), -6/(r**7), 1/(r**9), 9/(r**10)))
 
 
-def write_custom_lj_mn(file_name='table.xvg', m=12, n=6, dr=0.001, rcut=1.5):
+def write_custom_lj_mn(file_name='table.xvg', m=12, n=6, dr=0.001,
+    r_cut=1.5, r_correct=0.1):
     """Writes .xvg file for generic Lennard Jones-like n-m potential 
 
     See http://www.gromacs.org/@api/deki/files/94/=gromacs_nb.pdf
@@ -63,18 +64,50 @@ def write_custom_lj_mn(file_name='table.xvg', m=12, n=6, dr=0.001, rcut=1.5):
     m : int, order of repulsive term
     n : int, order of attractive term
     dr : float, spacing of values, nm
-    rcut : float, cutoff distance, nm
+    r_cut : float, cutoff distance, nm
+    r_correct: float, distance to switch to exponential head, nm
     """
     
-    nbins = int(1 + (rcut)/dr)
+    nbins = int(1 + (r_cut)/dr)
     
     with open(file_name, 'w') as fo:
         for j in range(nbins):
             r = dr*float(j)
-            if r > 0.05:
+            # Fit exponential head correction
+            Bm = np.log((r_correct/(r_correct - dr))**m)/dr
+            Am = r_correct**-m * np.exp(Bm*r_correct)
+
+            if n == 0:
+                Bn = 0
+                An = 0
+            else:
+                Bn = np.log((r_correct/(r_correct - dr))**n)/dr
+                An = -1*r_correct**-n * np.exp(Bn*r_correct)
+
+            if r == 0:
                 fo.write('{0} {1} {2} {3} {4} {5} {6}\n'.format(
-                    r, 1/r, 1/(r*r), -1/(r**n), -n/(r**(n+1)),
-                    1/(r**m), m/(r**(m+1))))
+                    r,
+                    1/(r+dr),
+                    1/(r+dr)**2,
+                    An*np.exp(-Bn*r),
+                    An*Bn*np.exp(-Bn*r),
+                    Am*np.exp(-Bm*r),
+                    Am*Bm*np.exp(-Bm*r)))
+            elif r < r_correct:
+                fo.write('{0} {1} {2} {3} {4} {5} {6}\n'.format(
+                    r,
+                    1/r,
+                    1/(r*r),
+                    An*np.exp(-Bn*r),
+                    An*Bn*np.exp(-Bn*r),
+                    Am*np.exp(-Bm*r),
+                    Am*Bm*np.exp(-Bm*r)))
             else:
                 fo.write('{0} {1} {2} {3} {4} {5} {6}\n'.format(
-                    r, 0, 0, 0, 0, 0, 0))
+                    r,
+                    1/r,
+                    1/(r*r),
+                    -1/(r**n),
+                    -n/(r**(n+1)),
+                    1/(r**m),
+                    m/(r**(m+1))))
