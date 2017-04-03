@@ -4,6 +4,7 @@ import parmed as pmd
 import warnings
 import mdtraj.core.element as Element
 
+
 def calc_charge_density(coord_file, trj_file, top_file, bin_width, area,
     dim, box_range, data_path):
     """
@@ -86,7 +87,7 @@ def calc_number_density(coord_file, trj_file, bin_width, area, dim, box_range, d
         np.savetxt('{0}/{1}-number-density.txt'.format(data_path, resname),
             np.vstack([x[1][:-1]+np.mean(x[1][:2])-box_range[0],
             x[0]/(area*bin_width*(len(traj)-1))]).transpose())
-        
+
         with open('{0}/resnames.txt'.format(data_path), "a") as myfile:
             myfile.write(resname + '\n')
 
@@ -112,9 +113,13 @@ def calc_msd(coord_file, trj_file):
 
     msd = [np.sum((row - traj.xyz[0])**2)/int(traj.n_atoms)
         for row in traj.xyz]
-    y_fit = msd[int(np.round(len(msd)/10, 0)):]
-    x_fit = traj.time[int(np.round(len(msd)/10, 0)):]
-    fit = np.polyfit(x_fit, y_fit, 1)
-    D = fit[1]/6 * 1e-9
+    y_fit = msd
+    x_fit = [val - msd_slice.time[0] for val in msd_slice.time]
 
-    return D, msd
+    fit = np.polyfit(x_fit[int(np.round(len(msd)/10, 0)):],
+        y_fit[int(np.round(len(msd)/10, 0)):],
+        1)
+
+    D = fit[0]/6 * 1e-6
+
+    return D, msd, x_fit, y_fit
