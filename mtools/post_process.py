@@ -123,3 +123,15 @@ def calc_msd(coord_file, trj_file):
     D = fit[0]/6 * 1e-6
 
     return D, msd, x_fit, y_fit
+
+
+def calc_density(traj, units='macro'):
+    vol = np.product(traj.unitcell_lengths, axis=1)
+    total_mass = np.sum([x.element.mass for x in traj.topology.atoms])
+    if units == 'nano':
+        rho = total_mass/vol
+    elif units == 'macro':
+        rho = total_mass/vol * 1.66054 # Convert from amu/nm^3 to kg/m^3
+    else:
+        raise ValueError('Unsupported units!')
+    return rho
