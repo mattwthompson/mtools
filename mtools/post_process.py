@@ -111,7 +111,7 @@ def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
 
     traj = md.load(trj_file, top=coord_file)
 
-    msd = [np.sum([(row - traj.xyz[0, :, dim])**2 for dim in [1, 1, 1]])/int(traj.n_atoms) for row in traj.xyz]
+    msd = [np.sum([(row - traj.xyz[0, :, dim])**2/int(traj.n_atoms) for dim in [1, 1, 1]]) for row in traj.xyz]
     y_fit = msd
     x_fit = [val - traj.time[0] for val in traj.time]
 
