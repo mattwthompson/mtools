@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 def read_itp(itp_file):
@@ -111,3 +113,17 @@ def write_custom_lj_mn(file_name='table.xvg', m=12, n=6, dr=0.001,
                     -n/(r**(n+1)),
                     1/(r**m),
                     m/(r**(m+1))))
+
+
+def unwrap_trj(filename):
+    """Wrapper around ```gmx trjconv``` that unwraps GROMACS trajectories.
+
+    See http://manual.gromacs.org/programs/gmx-trjconv.html
+
+    Arguments
+    -------
+    filename : string, path of table file
+    """
+    os.system('gmx trjconv -f {0} -o {1}_unwrapped.xtc -pbc nojump'.format(
+        filename,
+        filename.rsplit('.')[:-1]))
