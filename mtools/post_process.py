@@ -108,10 +108,20 @@ def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
         Bulk 3-D self-diffusvity
     msd : np.ndarray
     """
-
+    import pdb; pdb.set_trace()
     traj = md.load(trj_file, top=coord_file)
 
-    msd = [np.sum([(row - traj.xyz[0, :, dim])**2/int(traj.n_atoms) for dim in [1, 1, 1]]) for row in traj.xyz]
+    msd = np.zeros(shape=len(traj))
+
+    if dims == [1, 1, 1]:    
+        msd = [np.sum(([row[dim] for row in traj.xyz[:, :, :]] - traj.xyz[0, :, dim]) ** 2)/int(traj.n_atoms) for index in range(len(traj))]
+    else:
+        for dim, check in enumerate(dims):
+            if check == 1:
+                msd = [np.sum(([row[dim] for row in traj.xyz[index, :, :]] - traj.xyz[0, :, dim]) ** 2)/int(traj.n_atoms) for index in range(len(traj))]
+            elif check != 0:
+                raise ValueError('Indices of dim must be 0 or 1!')
+
     y_fit = msd
     x_fit = [val - traj.time[0] for val in traj.time]
 
@@ -119,7 +129,7 @@ def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
         y_fit[int(np.round(len(msd)/10, 0)):],
         1)
 
-    D = fit[0]/6 * 1e-6
+    D = fit[0]/(2*np.sum(dims)) * 1e-6
 
     return D, msd, x_fit, y_fit
 
