@@ -126,4 +126,4 @@ def unwrap_trj(filename):
     """
     os.system('gmx trjconv -f {0} -o {1}_unwrapped.xtc -pbc nojump'.format(
         filename,
-        filename.rsplit('.')[:-1]))
+        filename.rsplit('.')[:-1][0]))
