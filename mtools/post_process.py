@@ -108,7 +108,7 @@ def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
         Bulk 3-D self-diffusvity
     msd : np.ndarray
     """
-    import pdb; pdb.set_trace()
+
     traj = md.load(trj_file, top=coord_file)
 
     msd = np.zeros(shape=len(traj))
