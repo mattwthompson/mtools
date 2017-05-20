@@ -92,7 +92,7 @@ def calc_number_density(coord_file, trj_file, bin_width, area, dim, box_range, d
             myfile.write(resname + '\n')
 
 
-def calc_msd(coord_file, trj_file):
+def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
     """Calculate the MSD and diffuvisity of a bulk simulation
 
     Parameters
@@ -111,10 +111,10 @@ def calc_msd(coord_file, trj_file):
 
     traj = md.load(trj_file, top=coord_file)
 
-    msd = [np.sum((row - traj.xyz[0])**2)/int(traj.n_atoms)
+    msd = [np.sum([(row - traj.xyz[0, :, dim])**2 for dim in [1, 1, 1]])/int(traj.n_atoms) for row in traj.xyz]
         for row in traj.xyz]
     y_fit = msd
-    x_fit = [val - msd_slice.time[0] for val in msd_slice.time]
+    x_fit = [val - traj.time[0] for val in traj.time]
 
     fit = np.polyfit(x_fit[int(np.round(len(msd)/10, 0)):],
         y_fit[int(np.round(len(msd)/10, 0)):],
