@@ -92,15 +92,13 @@ def calc_number_density(coord_file, trj_file, bin_width, area, dim, box_range, d
             myfile.write(resname + '\n')
 
 
-def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
+def calc_msd(traj, dims=[1, 1, 1]):
     """Calculate the MSD and diffuvisity of a bulk simulation
 
     Parameters
     ----------
-    coord_file : String
-        Path to topology-containing coordinate file
-    trj_file : String
-        Path to unwrapped trajectory file
+    traj : md.Trajectory
+        mdtraj Trajectory
 
     Returns
     -------
@@ -108,8 +106,6 @@ def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
         Bulk 3-D self-diffusvity
     msd : np.ndarray
     """
-
-    traj = md.load(trj_file, top=coord_file)
 
     msd = np.zeros(shape=len(traj))
 
@@ -122,14 +118,17 @@ def calc_msd(coord_file, trj_file, dims=[1, 1, 1]):
             elif check != 0:
                 raise ValueError('Indices of dim must be 0 or 1!')
 
-    y_fit = msd
-    x_fit = [val - traj.time[0] for val in traj.time]
+    y = msd
+    x = [val - traj.time[0] for val in traj.time]
 
-    fit = np.polyfit(x_fit[int(np.round(len(msd)/10, 0)):],
-        y_fit[int(np.round(len(msd)/10, 0)):],
+    fit = np.polyfit(x[int(np.round(len(msd)/10, 0)):],
+        y[int(np.round(len(msd)/10, 0)):],
         1)
 
     D = fit[0]/(2*np.sum(dims)) * 1e-6
+
+    x_fit = x[int(np.round(len(msd)/10, 0)):]
+    y_fit = [fit[0]*x + fit[1] for x in x_fit]
 
     return D, msd, x_fit, y_fit
 
