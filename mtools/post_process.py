@@ -145,18 +145,23 @@ def calc_density(traj, units='macro'):
     return rho
 
 
-def slice_and_chunk(trj_file = 'traj_unwrapped.xtc', top_file='confound.pdb', chunk=100, skip=1, dims=[1, 1, 1],
+def slice_and_chunk(trj_file = 'traj_unwrapped.xtc', top_file='confound.pdb', chunk_len=100, skip=1, dims=[1, 1, 1],
                 x_range=[0, 3], y_range=[0, 3], z_range=[0, 3],
                 msd_file='msd.txt', img_file='msd.pdf'):
-    for n, chunk in enumerate(md.iterload(trj_file, top=top_file, chunk=chunk, skip=skip)):
-        if len(chunk) == 1:
+    for n, chunk in enumerate(md.iterload(trj_file, top=top_file, chunk=chunk_len, skip=skip)):
+        print(n)
+
+        if len(chunk) < chunk_len:
             continue
 
         indices = [[at.index for at in compound.atoms] for compound in list(chunk.topology.residues)]
 
         nlist = list()
 
-        for i, ids in enumerate(indices):
+        print('building nlist ...')
+
+        #for i, ids in enumerate(indices):
+        for ids in indices:
             sub_chunk = chunk[0].atom_slice(ids)
             sub_com = md.compute_center_of_mass(sub_chunk)[0]
             if (x_range[0] < sub_com[0] < x_range[1]):
@@ -170,7 +175,7 @@ def slice_and_chunk(trj_file = 'traj_unwrapped.xtc', top_file='confound.pdb', ch
             continue
 
         slice = chunk.atom_slice(nlist)
-        D, msd, x_fit, y_fit = calc_msd(slice)
+        D, msd, x_fit, y_fit = calc_msd(slice, dims=dims)
         if n == 0:
             master_msd = msd*slice.n_atoms
             master_n_atoms = slice.n_atoms
@@ -197,3 +202,5 @@ def slice_and_chunk(trj_file = 'traj_unwrapped.xtc', top_file='confound.pdb', ch
     ax.plot(x_fit, y_fit, 'r--')
     ax.set_title(D)
     plt.savefig(img_file)
+    with open(data_file, "a") as myfile:
+            myfile.write(D)
