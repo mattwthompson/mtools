@@ -2,6 +2,24 @@ import os
 
 import numpy as np
 
+
+def make_comtrj(trj):
+    """Takes a trj and returns a trj with COM positions as atoms"""
+
+    comtop = md.Topology()
+    coords = np.ndarray(shape=(trj.n_frames, trj.n_residues, 3))
+
+    for i, frame in enumerate(trj):
+        for j, res in enumerate(frame.topology.residues):
+            if i == 0:
+                comtop.add_atom(res.name, virtual_site, comtop.add_residue('A', comtop.add_chain()))
+            sub_frame = frame.atom_slice([at.index for at in res.atoms])
+            coords[i, j] = md.compute_center_of_mass(sub_frame)
+
+    comtrj = md.Trajectory(xyz=coords, topology=comtop, unitcell_angles=trj.unitcell_angles, unitcell_lengths=trj.unitcell_lengths)
+
+    return comtrj
+
 def read_itp(itp_file):
     """Takes itp file
 
