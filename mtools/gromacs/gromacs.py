@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-
+import mdtraj as md
 
 def make_comtrj(trj):
     """Takes a trj and returns a trj with COM positions as atoms"""
