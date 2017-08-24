@@ -142,6 +142,7 @@ def unwrap_trj(filename):
     -------
     filename : string, path of table file
     """
-    os.system('gmx trjconv -f {0} -o {1}_unwrapped.xtc -pbc nojump'.format(
+    os.system('gmx trjconv -f {0} -o {1}_unwrapped.{2} -pbc nojump'.format(
         filename,
-        filename.rsplit('.')[:-1][0]))
+        filename.rsplit('.')[:-1][0],
+        filename.rsplit('.')[-1]))

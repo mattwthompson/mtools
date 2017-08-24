@@ -3,7 +3,7 @@ import mdtraj as md
 import parmed as pmd
 import warnings
 import mdtraj.core.element as Element
-
+import matplotlib.pyplot as plt
 
 def calc_charge_density(coord_file, trj_file, top_file, bin_width, area,
     dim, box_range, data_path):
@@ -143,3 +143,64 @@ def calc_density(traj, units='macro'):
     else:
         raise ValueError('Unsupported units!')
     return rho
+
+
+def slice_and_chunk(trj_file = 'traj_unwrapped.xtc', top_file='confound.pdb', chunk_len=100, skip=1, dims=[1, 1, 1],
+                x_range=[0, 3], y_range=[0, 3], z_range=[0, 3],
+                msd_file='msd.txt', img_file='msd.pdf'):
+    for n, chunk in enumerate(md.iterload(trj_file, top=top_file, chunk=chunk_len, skip=skip)):
+        print(n)
+
+        if len(chunk) < chunk_len:
+            continue
+
+        indices = [[at.index for at in compound.atoms] for compound in list(chunk.topology.residues)]
+
+        nlist = list()
+
+        print('building nlist ...')
+
+        #for i, ids in enumerate(indices):
+        for ids in indices:
+            sub_chunk = chunk[0].atom_slice(ids)
+            sub_com = md.compute_center_of_mass(sub_chunk)[0]
+            if (x_range[0] < sub_com[0] < x_range[1]):
+                if (y_range[0] < sub_com[1] < y_range[1]):
+                    if (z_range[0] < sub_com[2] < z_range[1]):
+                        nlist.append(ids)
+
+        nlist = [val for sublist in nlist for val in sublist]
+
+        if len(nlist) == 0:
+            continue
+
+        slice = chunk.atom_slice(nlist)
+        D, msd, x_fit, y_fit = calc_msd(slice, dims=dims)
+        if n == 0:
+            master_msd = msd*slice.n_atoms
+            master_n_atoms = slice.n_atoms
+            fix, ax = plt.subplots()
+        else:
+            master_msd += msd*slice.n_atoms
+            master_n_atoms += slice.n_atoms
+            ax.plot(slice.time-slice.time[0], msd, 'b--', alpha=0.2)
+            ax.plot(x_fit, y_fit, 'k-', alpha=0.2)
+
+    ax.plot(slice.time-slice.time[0], [x/master_n_atoms for x in master_msd], 'r-')
+
+    x = [val - slice.time[0] for val in slice.time]
+    y = [x/master_n_atoms for x in master_msd]
+
+    fit = np.polyfit(x[int(np.round(len(master_msd)/5, 0)):],
+            y[int(np.round(len(master_msd)/5, 0)):], 1)
+
+    D = fit[0]/(2*np.sum(dims)) * 1e-6
+
+    x_fit = x[int(np.round(len(msd)/5, 0)):]
+    y_fit = [fit[0]*x + fit[1] for x in x_fit]
+
+    ax.plot(x_fit, y_fit, 'r--')
+    ax.set_title(D)
+    plt.savefig(img_file)
+    with open(data_file, "a") as myfile:
+            myfile.write(D)
