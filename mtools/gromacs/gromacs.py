@@ -10,12 +10,10 @@ def make_comtrj(trj):
     comtop = md.Topology()
     coords = np.ndarray(shape=(trj.n_frames, trj.n_residues, 3))
 
-    for i, frame in enumerate(trj):
-        for j, res in enumerate(frame.topology.residues):
-            if i == 0:
-                comtop.add_atom(res.name, virtual_site, comtop.add_residue('A', comtop.add_chain()))
-            sub_frame = frame.atom_slice([at.index for at in res.atoms])
-            coords[i, j] = md.compute_center_of_mass(sub_frame)
+    for j, res in enumerate(trj.topology.residues):
+        comtop.add_atom(res.name, virtual_site, comtop.add_residue('A', comtop.add_chain()))
+        res_frame = trj.atom_slice([at.index for at in res.atoms])
+        coords[:, j, :] = md.compute_center_of_mass(res_frame)
 
     comtrj = md.Trajectory(xyz=coords, topology=comtop, unitcell_angles=trj.unitcell_angles, unitcell_lengths=trj.unitcell_lengths)
 
