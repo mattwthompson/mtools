@@ -15,7 +15,11 @@ def make_comtrj(trj):
         res_frame = trj.atom_slice([at.index for at in res.atoms])
         coords[:, j, :] = md.compute_center_of_mass(res_frame)
 
-    comtrj = md.Trajectory(xyz=coords, topology=comtop, unitcell_angles=trj.unitcell_angles, unitcell_lengths=trj.unitcell_lengths)
+    comtrj = md.Trajectory(xyz=coords,
+                           topology=comtop,
+                           time=trj.time,
+                           unitcell_angles=trj.unitcell_angles,
+                           unitcell_lengths=trj.unitcell_lengths)
 
     return comtrj
 
