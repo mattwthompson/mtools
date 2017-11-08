@@ -3,6 +3,7 @@ import os
 import numpy as np
 import mdtraj as md
 from mdtraj.core.element import virtual_site
+from parmed import unit as u
 
 def make_comtrj(trj):
     """Takes a trj and returns a trj with COM positions as atoms"""
@@ -149,3 +150,40 @@ def unwrap_trj(filename):
         filename,
         filename.rsplit('.')[:-1][0],
         filename.rsplit('.')[-1]))
+
+
+def parse_nonbond_params(top_file, struct):
+    """Parse the `nonbond_params` directive in a GROMACS topology and store the
+    information in a parmed struct.
+
+    Code is almost directly taken from
+    ParmEd/ParmEd/blob/master/parmed/gromacs/gromacstop.py
+
+    """
+
+    current_section = None
+    with open(top_file, 'r') as top:
+        for line in top:
+            print(line)
+            line = line.strip()
+            if line[0] == ';':
+                continue
+            if line[0] == '[':
+                print(line[1:-1].strip())
+                current_section = line[1:-1].strip()
+                continue
+            if current_section == 'nonbond_params':
+                words = line.split()
+                a1, a2 = words[:2]
+                sig, eps = (float(x) for x in words[3:5])
+                sig *= 10 # Convert to Angstroms
+                eps *= u.kilojoule.conversion_factor_to(u.kilocalorie)
+                struct.parameterset.nbfix_types[(a1, a2)] = (eps, sig*2**(1/6))
+                struct.parameterset.nbfix_types[(a2, a1)] = (eps, sig*2**(1/6))
+                try:
+                    struct.parameterset.atom_types[a1].add_nbfix(a2, sig*2**(1/6), eps)
+                    struct.parameterset.atom_types[a2].add_nbfix(a1, sig*2**(1/6), eps)
+                except KeyError:
+                    pass
+
+    return struct
