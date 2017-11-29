@@ -216,7 +216,7 @@ def get_paired_state(trj, id_i, id_j, frame_index=0, cutoff=1):
 
 def build_initial_state(trj, names, frame_index=0, cutoff=1):
     """Build initial pair list. See 10.1021/acs.jpclett.5b00003 for a 
-    definition. The re-forming of pairs is currently not supported."""
+    definition. The re-forming of pairs is supported implicitly."""
     atom_ids = [a.index for a in trj.topology.atoms if a.name in names]
     pairs = [prod for prod in itertools.combinations(atom_ids, r=2)]
     pairs = [list([*pair, False]) for pair in pairs]
