@@ -204,26 +204,3 @@ def slice_and_chunk(trj_file = 'traj_unwrapped.xtc', top_file='confound.pdb', ch
     plt.savefig(img_file)
     with open(data_file, "a") as myfile:
             myfile.write(D)
-
-def get_paired_state(trj, id_i, id_j, frame_index=0, cutoff=1):
-    """Check to see if a given pair is still paired."""
-    dist = np.sum(np.sqrt((trj.xyz[frame_index, id_i] - trj.xyz[frame_index, id_j])**2))
-    if dist < cutoff:
-        paired = True
-    else:
-        paired = False
-    return paired
-
-def build_initial_state(trj, names, frame_index=0, cutoff=1):
-    """Build initial pair list. See 10.1021/acs.jpclett.5b00003 for a 
-    definition. The re-forming of pairs is supported implicitly."""
-    atom_ids = [a.index for a in trj.topology.atoms if a.name in names]
-    pairs = [prod for prod in itertools.combinations(atom_ids, r=2)]
-    pairs = [list([*pair, False]) for pair in pairs]
-
-    for i, pair in enumerate(pairs):
-        if pair[0] == pair[1]:
-            continue
-        pair[2] = get_paired_state(trj, pair[0], pair[1], frame_index=frame_index)
-    pairs = [pair for pair in pairs if pair[2] == True]
-    return pairs
