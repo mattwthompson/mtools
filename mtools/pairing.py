@@ -10,6 +10,10 @@ def calc_pairing(trj, cutoff, names, chunk_size=100, normalize=False):
         if i % chunk_size == 0:
             pairs = build_initial_state(frame, frame_index=0,
                 names=names, cutoff=cutoff)
+        # If no pairs were found, set number of pairs to 0
+        if len(pair) == 0:
+            c[i] = 0
+            continue
         for pair in pairs:
             if pair[2]:
                 pair[2] = get_paired_state(frame, pair[0], pair[1],
