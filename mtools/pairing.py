@@ -40,13 +40,13 @@ def calc_pairing(trj, cutoff, names, chunk_size=100,
 
 def calc_caging(trj, cutoff, names, chunk_size=100, normalize=False):
     """Calculate the number of molecular cages over a trajectory."""
-    c = np.zeros(len(trj))
+    c = np.zeros(shape=(len(trj), 2))
     for i, frame in enumerate(trj):
         if i % chunk_size == 0:
-            cages = build_initial_state(frame, frame_index=0,
+            cages = build_initial_cages(frame, frame_index=0,
                                         names=names, cutoff=cutoff)
         for cage in cages:
-            cage = check_cage(cage)
+            cage = check_cage(trj, cage)
             if not cage[-1]:
                 cages.remove(cage)
         c[i] = [frame.time[0], len(cages)]
@@ -108,17 +108,18 @@ def build_initial_cages(trj, names, frame_index=0, cutoff=1):
                                           cutoff=cutoff)
             if pair_check:
                 current_cage.append(id_j)
-        current_cage.append(False)
-        cages.append(current_cage)
+        if len(current_cage) > 1:
+            current_cage.append(True)
+            cages.append(current_cage)
 
     return cages
 
 
-def check_cage(cage):
+def check_cage(trj, cage):
     """Check if a given cage still meets its defined criteria."""
-    id_i = cage[0]
+    # Check to see if any ions left the cage
     for id_j in cage[1:-2]:
-        check = get_paired_state(id_i, id_j, frame_index=0, cutoff=0.8)
+        check = get_paired_state(trj, cage[0], id_j, frame_index=0, cutoff=0.8)
         if check is False:
             cage[-1] = check
             return cage
