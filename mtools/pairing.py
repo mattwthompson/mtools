@@ -4,9 +4,10 @@ import itertools
 from scipy.optimize import curve_fit
 
 
-def calc_pairing(trj, cutoff, names, chunk_size=100, normalize=False):
+def calc_pairing(trj, cutoff, names, chunk_size=100,
+                 check_reform=False, normalize=False):
     """Calculate the number of molecular pairs over a trajectory."""
-    c = np.zeros(shape=(len(trj), 2)
+    c = np.zeros(shape=(len(trj), 2))
     for i, frame in enumerate(trj):
         if i % chunk_size == 0:
             pairs = build_initial_state(frame, frame_index=0,
@@ -16,7 +17,8 @@ def calc_pairing(trj, cutoff, names, chunk_size=100, normalize=False):
             c[i] = [frame.time[0], 0]
             continue
         for pair in pairs:
-            if pair[2]:
+            # Check unless both pair[2] and check_reform are False
+            if pair[2] or check_reform:
                 pair[2] = get_paired_state(frame, pair[0], pair[1],
                                            frame_index=0, cutoff=0.8)
         c[i] = [frame.time[0], np.sum(np.array(pairs)[:, 2])]
@@ -25,6 +27,7 @@ def calc_pairing(trj, cutoff, names, chunk_size=100, normalize=False):
 
     for chunk in chunks(c, chunk_size):
         if len(chunk) < chunk_size:
+            # Neglect data in remainder of modulus
             continue
         hbar[:, 0] = chunk[:, 0] - chunk[0, 0]
         hbar[:, 1] += chunk[:, 1]
@@ -75,7 +78,7 @@ def get_paired_state(trj, id_i, id_j, frame_index=0, cutoff=1):
 
 def build_initial_state(trj, names, frame_index=0, cutoff=1):
     """Build initial pair list. See 10.1021/acs.jpclett.5b00003 for a
-    definition. The re-forming of pairs is supported implicitly."""
+    definition. The re-forming of pairs is supported with a flag."""
     atom_ids = [a.index for a in trj.topology.atoms if a.name in names]
     pairs = [prod for prod in itertools.combinations(atom_ids, r=2)]
     pairs = [list([*pair, False]) for pair in pairs]
