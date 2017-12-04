@@ -62,6 +62,27 @@ def build_initial_state(trj, names, frame_index=0, cutoff=1):
     return pairs
 
 
+def build_initial_cages(trj, names, frame_index=0, cutoff=1):
+    """Build initial cage list. See 10.1021/acs.jpclett.5b00003 for a
+    definition. The re-forming of cages is not permitted."""
+    atom_ids = [a.index for a in trj.topology.atoms if a.name in names]
+
+    cages = list()
+
+    for id_i in atom_ids:
+        current_cage = list()
+        current_cage.append(id_i)
+        for id_j in atom_ids:
+            pair_check = get_paired_state(id_i, id_j,
+                                          frame_index=frame_index, cutoff=cutoff)
+            if pair_check:
+                current_cage.append(id_j)
+        current_cage.append(False)
+        cages.append(current_cage)
+
+    return cages
+
+
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
