@@ -34,6 +34,33 @@ def calc_pairing(trj, cutoff, names, chunk_size=100, normalize=False):
     return hbar
 
 
+def calc_caging(trj, cutoff, names, chunk_size=100, normalize=False):
+    """Calculate the number of molecular cages over a trajectory."""
+    c = np.zeros(len(trj))
+    for i, frame in enumerate(trj):
+        if i % chunk_size == 0:
+            cages = build_initial_state(frame, frame_index=0,
+                                        names=names, cutoff=cutoff)
+        for cage in cages:
+            cage = check_cage(cage)
+            if not cage[-1]:
+                cages.remove(cage)
+        c[i] = [frame.time[0], len(cages)]
+
+    hbar = np.zeros(shape=(chunk_size, 2))
+
+    for chunk in chunks(c, chunk_size):
+        if len(chunk) < chunk_size:
+            continue
+        hbar[:, 0] = chunk[:, 0] - chunk[0, 0]
+        hbar[:, 1] += chunk[:, 1]
+
+    if normalize:
+        hbar[:, 1] /= hbar[0, 1]
+
+    return hbar
+
+
 def get_paired_state(trj, id_i, id_j, frame_index=0, cutoff=1):
     """Check to see if a given pair is still paired."""
     dist = np.sum(np.sqrt((trj.xyz[frame_index, id_i] -
@@ -73,14 +100,25 @@ def build_initial_cages(trj, names, frame_index=0, cutoff=1):
         current_cage = list()
         current_cage.append(id_i)
         for id_j in atom_ids:
-            pair_check = get_paired_state(id_i, id_j,
-                                          frame_index=frame_index, cutoff=cutoff)
+            pair_check = get_paired_state(id_i, id_j, frame_index=frame_index,
+                                          cutoff=cutoff)
             if pair_check:
                 current_cage.append(id_j)
         current_cage.append(False)
         cages.append(current_cage)
 
     return cages
+
+
+def check_cage(cage):
+    """Check if a given cage still meets its defined criteria."""
+    id_i = cage[0]
+    for id_j in cage[1:-2]:
+        check = get_paired_state(id_i, id_j, frame_index=0, cutoff=0.8)
+        if check is False:
+            cage[-1] = check
+            return cage
+    return cage
 
 
 def chunks(l, n):
