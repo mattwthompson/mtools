@@ -1,18 +1,19 @@
 import numpy as np
 import mdtraj as md
+import itertools
 from scipy.optimize import curve_fit
 
 
 def calc_pairing(trj, cutoff, names, chunk_size=100, normalize=False):
     """Calculate the number of molecular pairs over a trajectory."""
-    c = np.zeros(len(trj))
+    c = np.zeros(shape=(len(trj), 2)
     for i, frame in enumerate(trj):
         if i % chunk_size == 0:
             pairs = build_initial_state(frame, frame_index=0,
                                         names=names, cutoff=cutoff)
         # If no pairs were found, set number of pairs to 0
         if len(pair) == 0:
-            c[i] = 0
+            c[i] = [frame.time[0], 0]
             continue
         for pair in pairs:
             if pair[2]:
