@@ -46,11 +46,10 @@ def calc_caging(trj, cutoff, names, chunk_size=100, normalize=False):
             cages = build_initial_cages(frame, frame_index=0,
                                         names=names, cutoff=cutoff)
         for cage in cages:
-            cage = check_cage(trj, cage)
-            if not cage[-1]:
+            if not check_cage(frame, cage, names):
                 cages.remove(cage)
         c[i] = [frame.time[0], len(cages)]
-
+        print(c[i])
     hbar = np.zeros(shape=(chunk_size, 2))
 
     for chunk in chunks(c, chunk_size):
@@ -104,7 +103,7 @@ def build_initial_cages(trj, names, frame_index=0, cutoff=1):
         current_cage = list()
         current_cage.append(id_i)
         for id_j in atom_ids:
-            pair_check = get_paired_state(id_i, id_j, frame_index=frame_index,
+            pair_check = get_paired_state(trj, id_i, id_j, frame_index=frame_index,
                                           cutoff=cutoff)
             if pair_check:
                 current_cage.append(id_j)
@@ -115,15 +114,24 @@ def build_initial_cages(trj, names, frame_index=0, cutoff=1):
     return cages
 
 
-def check_cage(trj, cage):
+def check_cage(trj, cage, names):
     """Check if a given cage still meets its defined criteria."""
+    atom_ids = [a.index for a in trj.topology.atoms if a.name in names]
+
     # Check to see if any ions left the cage
     for id_j in cage[1:-2]:
+        # Verify ions still exist in shell
         check = get_paired_state(trj, cage[0], id_j, frame_index=0, cutoff=0.8)
-        if check is False:
-            cage[-1] = check
-            return cage
-    return cage
+        if not check:
+            return False
+    # See if any new ions entered the shell
+    for id_k in atom_ids:
+        if id_k in cage[:-2]:
+            continue
+        pair_check = get_paired_state(trj, cage[0], id_k, frame_index=0, cutoff=0.8) 
+        if pair_check:
+            return False
+    return True
 
 
 def chunks(l, n):
