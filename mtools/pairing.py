@@ -13,7 +13,7 @@ def calc_pairing(trj, cutoff, names, chunk_size=100,
             pairs = build_initial_state(frame, frame_index=0,
                                         names=names, cutoff=cutoff)
         # If no pairs were found, set number of pairs to 0
-        if len(pair) == 0:
+        if len(pairs) == 0:
             c[i] = [frame.time[0], 0]
             continue
         for pair in pairs:
@@ -45,10 +45,15 @@ def calc_caging(trj, cutoff, names, chunk_size=100, normalize=False):
         if i % chunk_size == 0:
             cages = build_initial_cages(frame, frame_index=0,
                                         names=names, cutoff=cutoff)
+        counter = 0
         for cage in cages:
-            if not check_cage(frame, cage, names):
-                cages.remove(cage)
-        c[i] = [frame.time[0], len(cages)]
+        #    if not check_cage(frame, cage, names):
+        #        cages.remove(cage)
+        #c[i] = [frame.time[0], len(cages)]
+            cage = check_cage(frame, cage, names)
+            if cage[-1]:
+                counter += 1
+        c[i] = [frame.time[0], counter]
         print(c[i])
     hbar = np.zeros(shape=(chunk_size, 2))
 
@@ -123,15 +128,17 @@ def check_cage(trj, cage, names):
         # Verify ions still exist in shell
         check = get_paired_state(trj, cage[0], id_j, frame_index=0, cutoff=0.8)
         if not check:
-            return False
+            cage[-1] = check
+            return cage
     # See if any new ions entered the shell
     for id_k in atom_ids:
         if id_k in cage[:-2]:
             continue
         pair_check = get_paired_state(trj, cage[0], id_k, frame_index=0, cutoff=0.8) 
         if pair_check:
-            return False
-    return True
+            cage[-1] = False
+            return cage
+    return cage
 
 
 def chunks(l, n):
