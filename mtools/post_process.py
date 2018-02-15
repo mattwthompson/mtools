@@ -204,3 +204,33 @@ def slice_and_chunk(trj_file = 'traj_unwrapped.xtc', top_file='confound.pdb', ch
     plt.savefig(img_file)
     with open(data_file, "a") as myfile:
             myfile.write(D)
+
+
+def compute_cn(r, g_r, rho_j):
+    """
+    Compute the coordination number of `j` around `i`.
+
+    Note: The coordination number is not pairwise symmetric with respect to
+    `i` and `j`, unlike the radial distribution funciton. For example, in a
+    typical aqueous electrolyte system, an ion has more waters surrounding it
+    than a water has ions surrounding it.
+
+    Parameters
+    ----------
+    r : array-like
+        Radii values corresponding to the centers of the RDF bins
+    g_r : array-like
+        Radial distribution function (RDF) values of `ij`
+    rho_j : float
+        Partial density of selection `j`. It is importat
+
+    Returns
+    -------
+    c_n : array-like
+
+    """
+
+    factor = 4 * np.pi * rho_j
+    c_n = [np.trapz(g_r[:i] * r[:i] ** 2, r[:i], r) for i in range(len(r))]
+    c_n *= factor
+    return c_n
