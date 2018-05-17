@@ -71,8 +71,11 @@ def calc_caging(trj, cutoff, names, chunk_size=100, normalize=False):
 
 def get_paired_state(trj, id_i, id_j, frame_index=0, cutoff=1):
     """Check to see if a given pair is still paired."""
-    dist = np.sum(np.sqrt((trj.xyz[frame_index, id_i] -
-                           trj.xyz[frame_index, id_j]) ** 2))
+    dist = md.compute_distances(traj=trj,
+                                    atom_pairs=[(id_i, id_j)],
+                                    periodic=True,
+                                    opt=True)
+
     if dist < cutoff:
         paired = True
     else:
