@@ -169,6 +169,8 @@ def parse_nonbond_params(top_file, gmxtop):
     with open(top_file, 'r') as top:
         for line in top:
             line = line.strip()
+            if not line:
+                continue
             if line[0] == ';':
                 continue
             if line[0] == '[':
