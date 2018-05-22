@@ -20,7 +20,7 @@ def calc_pairing(trj, cutoff, names, chunk_size=100,
             # Check unless both pair[2] and check_reform are False
             if pair[2] or check_reform:
                 pair[2] = get_paired_state(frame, pair[0], pair[1],
-                                           frame_index=0, cutoff=0.8)
+                                           frame_index=0, cutoff=0.8, use_mdtraj=True)
         c[i] = [frame.time[0], np.sum(np.array(pairs)[:, 2])]
 
     hbar = np.zeros(shape=(chunk_size, 2))
@@ -69,13 +69,15 @@ def calc_caging(trj, cutoff, names, chunk_size=100, normalize=False):
     return hbar
 
 
-def get_paired_state(trj, id_i, id_j, frame_index=0, cutoff=1):
+def get_paired_state(trj, id_i, id_j, frame_index=0, cutoff=1, use_mdtraj=True):
     """Check to see if a given pair is still paired."""
-    dist = md.compute_distances(traj=trj,
+    if use_mdtraj:
+        dist = md.compute_distances(traj=trj,
                                     atom_pairs=[(id_i, id_j)],
                                     periodic=True,
                                     opt=True)
-
+    else:
+        dist = np.sqrt(np.sum((trj.xyz[frame_index, id_i] -trj.xyz[frame_index, id_j]) ** 2))        
     if dist < cutoff:
         paired = True
     else:
@@ -94,7 +96,7 @@ def build_initial_state(trj, names, frame_index=0, cutoff=1):
         if pair[0] == pair[1]:
             continue
         pair[2] = get_paired_state(trj, pair[0], pair[1],
-                                   frame_index=frame_index)
+                                   frame_index=frame_index, use_mdtraj=True)
     pairs = [pair for pair in pairs if pair[2] == True]
 
     return pairs
@@ -112,7 +114,7 @@ def build_initial_cages(trj, names, frame_index=0, cutoff=1):
         current_cage.append(id_i)
         for id_j in atom_ids:
             pair_check = get_paired_state(trj, id_i, id_j, frame_index=frame_index,
-                                          cutoff=cutoff)
+                                          cutoff=cutoff, use_mdtraj=True)
             if pair_check:
                 current_cage.append(id_j)
         if len(current_cage) > 1:
@@ -129,7 +131,7 @@ def check_cage(trj, cage, names):
     # Check to see if any ions left the cage
     for id_j in cage[1:-2]:
         # Verify ions still exist in shell
-        check = get_paired_state(trj, cage[0], id_j, frame_index=0, cutoff=0.8)
+        check = get_paired_state(trj, cage[0], id_j, frame_index=0, cutoff=0.8, use_mdtraj=True)
         if not check:
             cage[-1] = check
             return cage
@@ -137,7 +139,7 @@ def check_cage(trj, cage, names):
     for id_k in atom_ids:
         if id_k in cage[:-2]:
             continue
-        pair_check = get_paired_state(trj, cage[0], id_k, frame_index=0, cutoff=0.8) 
+        pair_check = get_paired_state(trj, cage[0], id_k, frame_index=0, cutoff=0.8, use_mdtraj=True)
         if pair_check:
             cage[-1] = False
             return cage
