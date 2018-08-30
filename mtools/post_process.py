@@ -4,6 +4,7 @@ import parmed as pmd
 import warnings
 import mdtraj.core.element as Element
 import matplotlib.pyplot as plt
+import scipy
 
 def calc_charge_density(coord_file, trj_file, top_file, bin_width, area,
     dim, box_range, data_path):
@@ -92,13 +93,21 @@ def calc_number_density(coord_file, trj_file, bin_width, area, dim, box_range, d
             myfile.write(resname + '\n')
 
 
-def calc_msd(traj, dims=[1, 1, 1]):
+def calc_msd(traj, dims=[1, 1, 1], fit_with):
     """Calculate the MSD and diffuvisity of a bulk simulation
 
     Parameters
     ----------
     traj : md.Trajectory
         mdtraj Trajectory
+
+    dims : list of int, default = [1, 1, 1]
+        Dimensions to consider, in order of `x, y, z`. A value of 1 will result
+        in that dimension being considered.
+
+    fit_with : str, default='scipy.stats'
+        Package to use for linear fitting. Options are 'numpy' (`numpy.polyfit`) and
+        'scipy' (`scipy.stats.linregress`)
 
     Returns
     -------
@@ -121,14 +130,24 @@ def calc_msd(traj, dims=[1, 1, 1]):
     y = msd
     x = traj.time - traj.time[0]
 
-    fit = np.polyfit(x[int(np.round(len(msd)/10, 0)):],
-        y[int(np.round(len(msd)/10, 0)):],
-        1)
+    if fit_with == 'scipy':
+        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(x, y)
+        D = intercept/(2*np.sum(dims)) * 1e-6
 
-    D = fit[0]/(2*np.sum(dims)) * 1e-6
+        x_fit = x[int(np.round(len(msd)/10, 0)):]
+        y_fit = slope * x_fit + intercept
 
-    x_fit = x[int(np.round(len(msd)/10, 0)):]
-    y_fit = [fit[0]*x + fit[1] for x in x_fit]
+    elif fit_with == 'numpy':
+        fit = np.poly1d(
+                np.polyfit(x[int(np.round(len(msd)/10, 0)):],
+                           y[int(np.round(len(msd)/10, 0)):],
+                           1)
+                )
+
+        D = fit[0]/(2*np.sum(dims)) * 1e-6
+
+        x_fit = x[int(np.round(len(msd)/10, 0)):]
+        y_fit = fit(x_fit)
 
     return D, msd, x_fit, y_fit
 
