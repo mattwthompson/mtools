@@ -4,7 +4,7 @@ import parmed as pmd
 import warnings
 import mdtraj.core.element as Element
 import matplotlib.pyplot as plt
-import scipy
+from scipy import stats
 
 def calc_charge_density(coord_file, trj_file, top_file, bin_width, area,
     dim, box_range, data_path):
@@ -93,7 +93,7 @@ def calc_number_density(coord_file, trj_file, bin_width, area, dim, box_range, d
             myfile.write(resname + '\n')
 
 
-def calc_msd(traj, dims=[1, 1, 1], fit_with):
+def calc_msd(traj, dims=[1, 1, 1], fit_with='scipy'):
     """Calculate the MSD and diffuvisity of a bulk simulation
 
     Parameters
@@ -131,8 +131,8 @@ def calc_msd(traj, dims=[1, 1, 1], fit_with):
     x = traj.time - traj.time[0]
 
     if fit_with == 'scipy':
-        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(x, y)
-        D = intercept/(2*np.sum(dims)) * 1e-6
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        D = slope / (2*np.sum(dims)) * 1e-6
 
         x_fit = x[int(np.round(len(msd)/10, 0)):]
         y_fit = slope * x_fit + intercept
