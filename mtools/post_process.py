@@ -119,7 +119,7 @@ def calc_msd(traj, dims=[1, 1, 1]):
                 raise ValueError('Indices of dim must be 0 or 1!')
 
     y = msd
-    x = [val - traj.time[0] for val in traj.time]
+    x = traj.time - traj.time[0]
 
     fit = np.polyfit(x[int(np.round(len(msd)/10, 0)):],
         y[int(np.round(len(msd)/10, 0)):],
