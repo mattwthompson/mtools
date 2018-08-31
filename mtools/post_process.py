@@ -116,14 +116,14 @@ def calc_msd(traj, dims=[1, 1, 1], fit_with='scipy'):
     msd : np.ndarray
     """
 
-    msd = np.zeros(shape=len(traj))
 
-    if dims == 'NULL':
-        msd = [np.sum(([row for row in traj.xyz[:, :, :]] - traj.xyz[0, :, :]) ** 2)/int(traj.n_atoms) for index in range(len(traj))]
+    if dims == [1, 1, 1]:
+        msd = [np.sum((traj.xyz[index, :, :] - traj.xyz[0, :, :]) ** 2) / traj.n_atoms for index in range(traj.n_frames)]
     else:
+        msd = np.zeros(shape=traj.n_frames)
         for dim, check in enumerate(dims):
             if check == 1:
-                msd += [np.sum(([row[dim] for row in traj.xyz[index, :, :]] - traj.xyz[0, :, dim]) ** 2)/int(traj.n_atoms) for index in range(len(traj))]
+                msd += [np.sum((traj.xyz[index, :, dim] - traj.xyz[0, :, dim]) ** 2) / traj.n_atoms for index in range(traj.n_frames)]
             elif check != 0:
                 raise ValueError('Indices of dim must be 0 or 1!')
 
